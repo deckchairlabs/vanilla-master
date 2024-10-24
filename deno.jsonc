@@ -1,0 +1,20 @@
+{
+  "tasks": {
+    "dev": "deno serve -A --watch server.tsx"
+  },
+  "imports": {
+    "hono": "jsr:@hono/hono@^4.6.6"
+  },
+  "compilerOptions": {
+    "jsx": "precompile",
+    "jsxImportSource": "hono/jsx"
+  },
+  "deploy": {
+    "project": "64767999-a594-45c5-ad82-efbf0a4624b0",
+    "exclude": [
+      "**/node_modules"
+    ],
+    "include": [],
+    "entrypoint": "server.tsx"
+  }
+}
