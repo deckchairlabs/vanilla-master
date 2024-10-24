@@ -103,7 +103,7 @@ export const DefaultLayout = async (props: PropsWithChildren) => {
 export const Header = () => {
 	return (
 		<header class="header-root">
-			<a href="/" class="logo">VanillaMaster</a>
+			<a preload={"eager"} href="/" class="logo">VanillaMaster</a>
 			<input class="search" placeholder="Search..."></input>
 			<div class="menu-wrapper">
 				<a class="order-link">ORDER</a>
