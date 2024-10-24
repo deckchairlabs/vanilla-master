@@ -138,6 +138,8 @@ export const HomePage = async () => {
 
 	const c = await supabase.from("collections").select(`name, slug, categories:categories(*)`);
 
+	let imageCount = 0;
+
 	return (
 		<DefaultLayout>
 			<div class="home">
@@ -147,7 +149,7 @@ export const HomePage = async () => {
 						<div class="collection-wrapper">
 							{collection.categories.map((category: any) => (
 								<a preload href={`/products/${category.slug}`}>
-									<img loading={"lazy"} width={100} height={100} src={category.image_url}
+									<img loading={imageCount++ > 30 ? "lazy" : 'eager'} width={100} height={100} src={category.image_url}
 										 alt={category.name}/>
 									<p>{category.name}</p>
 								</a>
@@ -174,8 +176,7 @@ export const CollectionPage = async (props: { collection: string }) => {
 				<div className="collection-wrapper">
 					{data.categories.map((category: any) => (
 						<a preload href={`/products/${category.slug}`}>
-							<img loading={"lazy"} width={100} height={100} src={category.image_url}
-								 alt={category.name}/>
+							<img loading={"eager"} width={100} height={100} src={category.image_url} alt={category.name}/>
 							<p>{category.name}</p>
 						</a>
 					))}
@@ -238,7 +239,7 @@ export const SubcategoryPage = async (props: { subcategory: string }) => {
 				{products.data?.map((product: any) => (
 					<a preload href={`/product/${product.slug}`}>
 						<h3>{product.name}</h3>
-						<img width={50} height={50} src={product.image_url} alt={product.name} />
+						<img loading={"eager"} width={50} height={50} src={product.image_url} alt={product.name} />
 					</a>
 				))}
 			</div>
