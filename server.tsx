@@ -69,9 +69,7 @@ const Shell = (p: PropsWithChildren<{ meta: any }>) => (
 		</head>
 		<body>
 			<template id="lol" shadowrootmode="open">
-				<div dangerouslySetInnerHTML={{
-					__html: `\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b`
-				}}/>
+				<link rel="stylesheet" href="/styles.css"/>
 				<Header/>
 				<main>
 					<slot name="main"/>
@@ -90,25 +88,45 @@ const Shell = (p: PropsWithChildren<{ meta: any }>) => (
 export const DefaultLayout = async (props: PropsWithChildren) => {
 	const c = await supabase.from("collections").select("name, slug");
 	return (
-		<div slot="main">
-			<aside>
+		<div class="default-layout" slot="main">
+			<aside class="sidebar-nav">
+				<h2>Choose a Collection</h2>
 				{c.data?.map((collection: any) => (
 					<a preload href={`/collections/${collection.slug}`}>{collection.name}</a>))}
 			</aside>
-			<div>{props.children}</div>
+			<div class="content">{props.children}</div>
 		</div>
 	)
 }
 
 export const Header = () => {
 	return (
-		<header><a preload href={"/"}>home</a>header</header>
+		<header class="header-root">
+			<a href="/" class="logo">VanillaMaster</a>
+			<input class="search" placeholder="Search..."></input>
+			<div class="menu-wrapper">
+				<a class="order-link">ORDER</a>
+				<a class="order-history-link">ORDER HISTORY</a>
+			</div>
+		</header>
 	)
 }
 
 export const Footer = () => {
 	return (
-		<footer>footer</footer>
+		<footer>
+			<ul>
+				<li>Home</li>
+				<li>Location</li>
+				<li>Returns</li>
+				<li>Careers</li>
+				<li>Mobile App</li>
+				<li>Solidworks Add-In</li>
+				<li>Help</li>
+				<li>Settings</li>
+			</ul>
+			<p>By using this website, you agree to check out the <a href="http://github.com/b3nten/vanilla-master">Source Code</a></p>
+		</footer>
 	)
 }
 
@@ -122,17 +140,22 @@ export const HomePage = async () => {
 
 	return (
 		<DefaultLayout>
-			{c.data?.map((collection: any) => (
-				<div>
-					<h2>{collection.name}</h2>
-					{collection.categories.map((category: any) => (
-						<a preload href={`/products/${category.slug}`}>
-							<p>{category.name}</p>
-							<img loading={"lazy"} width={50} height={50} src={category.image_url} alt={category.name}/>
-						</a>
-					))}
-				</div>
-			))}
+			<div class="home">
+				{c.data?.map((collection: any) => (
+					<div>
+						<h2>{collection.name}</h2>
+						<div class="collection-wrapper">
+							{collection.categories.map((category: any) => (
+								<a preload href={`/products/${category.slug}`}>
+									<img loading={"lazy"} width={100} height={100} src={category.image_url}
+										 alt={category.name}/>
+									<p>{category.name}</p>
+								</a>
+							))}
+						</div>
+					</div>
+				))}
+			</div>
 		</DefaultLayout>
 	)
 }
@@ -236,7 +259,6 @@ app.get("/", (c) => {
 	return stream(c, async s => {
 		s.write("<!DOCTYPE html>");
 		s.write(await render(c, <Shell meta={meta}></Shell>));
-		await new Promise((r) => setTimeout(r, 2000));
 		s.write(await render(c, <HomePage/>));
 	});
 });
