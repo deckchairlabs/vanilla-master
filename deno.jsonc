@@ -1,6 +1,7 @@
 {
   "tasks": {
-    "dev": "deno serve -A --watch --env-file server.tsx"
+    "dev": "deno serve -A --watch --env-file server.tsx",
+    "start": "deno serve -A server.tsx"
   },
   "fmt": {
     "indentWidth": 2
