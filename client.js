@@ -1,4 +1,6 @@
-
+/***********************************************************
+    Polyfill for browsers that do not support requestIdleCallback
+************************************************************/
 
 if (!window.requestIdleCallback) {
 	window.requestIdleCallback = function (callback, options) {
@@ -18,6 +20,47 @@ if (!window.requestIdleCallback) {
 		}, relaxation);
 	};
 }
+
+/***********************************************************
+    Utilities
+************************************************************/
+
+function debounce(func, timeout = 300){
+	let timer;
+	return (...args) => {
+		clearTimeout(timer);
+		timer = setTimeout(() => { func.apply(this, args) }, timeout);
+	}
+}
+
+class Task {
+	constructor(task)
+	{
+		let rejected = false;
+		const { promise, resolve, reject } = Promise.withResolvers();
+		this.#promise = promise;
+		this.#reject = reject;
+		if (!rejected)
+		{
+			task().then(resolve, reject)
+		}
+	}
+
+	then(...args) { return this.#promise.then(...args); }
+
+	cancel()
+	{
+		this.#reject(new Error("Canceled"));
+	}
+
+	#reject;
+	#promise;
+}
+
+/***********************************************************
+    Morpher
+ 	* Uses idiomorph for prefetching links and images and morphing the page
+************************************************************/
 
 class Morpher
 {
@@ -225,28 +268,31 @@ class Morpher
 const morpher = new Morpher;
 morpher.init()
 
+/***********************************************************
+ 	Search element
+************************************************************/
 
 class SearchElement extends HTMLElement
 {
 	input;
-
 	value;
-
 	results;
-
 	dropdown;
-
 	inFlightPromise;
+	debouncedOnInput;
 
 	onInput = (e) =>
 	{
 		this.value = this.input.value;
+
 		if(this.value.length < 3)
 		{
-			this.dropdown.innerHTML = "search products...";
-			return;
+			this.dropdown.innerHTML = "Search products...";
 		}
-		this.fetchFromServer();
+		else
+		{
+			this.fetchFromServer();
+		}
 	}
 
 	fetchFromServer = async () =>
@@ -269,13 +315,9 @@ class SearchElement extends HTMLElement
 			}
 
 			this.results = results;
-			this.dropdown.innerHTML = `
-			${this.results.map(r => `<a preload href="/product/${r.slug}">${r.name}</a>`).join("")}
-		`
+			this.dropdown.innerHTML = this.results.map(r => `<a preload class="search-result hoverable" href="/product/${r.slug}">${r.name}</a>`).join("")
 			for(const link of this.dropdown.getElementsByTagName("a"))
 			{
-				link.style.display = "block";
-				link.style.padding = ".5rem";
 				morpher.registerLink(link);
 				link.addEventListener("click", (e) => {
 					this.dropdown.style.display = "none";
@@ -289,72 +331,27 @@ class SearchElement extends HTMLElement
 
 	connectedCallback()
 	{
-		this.input = this.querySelector("input");
-
-		const debouncedOnInput = debounce(this.onInput);
-
-		this.input.addEventListener("input", (e) => debouncedOnInput(e))
-
 		this.style.position = "relative";
 
-		this.dropdown = document.createElement("div");
-		this.dropdown.style.position = "absolute";
-		this.dropdown.style.top = "100%";
-		this.dropdown.style.left = "0";
-		this.dropdown.style.width = "100%";
-		this.dropdown.style.backgroundColor = "white";
-		this.dropdown.style.border = "1px solid black";
-		this.dropdown.style.padding = "1rem";
-		this.dropdown.innerHTML = "search products...";
-		this.dropdown.style.display = "none";
+		this.input = this.querySelector("input");
 
-		this.input.addEventListener("focus", () => {
-			this.dropdown.style.display = "block";
-		})
+		this.debouncedOnInput = debounce(this.onInput);
+
+		this.input.addEventListener("input", (e) => this.debouncedOnInput(e))
 
 		document.body.shadowRoot.addEventListener("click", (e) => {
 			if(!this.contains(e.target)) this.dropdown.style.display = "none";
 		})
 
+		this.input.addEventListener("focus", () => {
+			this.dropdown.style.display = "block";
+		})
+
+		this.dropdown = document.createElement("div");
+		this.dropdown.classList.add("search-dropdown");
+		this.dropdown.innerHTML = "Search products...";
 		this.appendChild(this.dropdown);
 	}
-
-	disconnectedCallback()
-	{
-		this.input.removeEventListener("input", this.onInput)
-	}
 }
 
-if(!customElements.get("product-searh")) customElements.define("product-search", SearchElement);
-
-function debounce(func, timeout = 300){
-	let timer;
-	return (...args) => {
-		clearTimeout(timer);
-		timer = setTimeout(() => { func.apply(this, args) }, timeout);
-	}
-}
-
-class Task {
-	constructor(task)
-	{
-		let rejected = false;
-		const { promise, resolve, reject } = Promise.withResolvers();
-		this.#promise = promise;
-		this.#reject = reject;
-		if (!rejected)
-		{
-			task().then(resolve, reject)
-		}
-	}
-
-	then(...args) { return this.#promise.then(...args); }
-
-	cancel()
-	{
-		this.#reject(new Error("Canceled"));
-	}
-
-	#reject;
-	#promise;
-}
+if(!customElements.get("product-search")) customElements.define("product-search", SearchElement);
