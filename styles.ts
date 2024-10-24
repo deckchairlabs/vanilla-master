@@ -1,7 +1,7 @@
 import { createCssContext } from "hono/css";
 
 const context = createCssContext({
-    id: "app",
+  id: "app",
 });
 
 export const css = context.css;
