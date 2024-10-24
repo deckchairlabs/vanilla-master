@@ -169,24 +169,30 @@ export const CollectionPage = async (props: { collection: string }) => {
 	const { data } = await supabase.from("collections").select("*, categories:categories(*)").eq("slug", props.collection).single()
 	return (
 		<DefaultLayout>
-			{data.categories.map((category: any) => (
-				<a preload href={`/products/${category.slug}`}>
-					<p>{category.name}</p>
-					<img loading={"lazy"} width={50} height={50} src={category.image_url} alt={category.name} />
-				</a>
-			))}
+			<div class="collection-page">
+				<h2>{data.name}</h2>
+				<div className="collection-wrapper">
+					{data.categories.map((category: any) => (
+						<a preload href={`/products/${category.slug}`}>
+							<img loading={"lazy"} width={100} height={100} src={category.image_url}
+								 alt={category.name}/>
+							<p>{category.name}</p>
+						</a>
+					))}
+				</div>
+			</div>
 		</DefaultLayout>
 	)
 }
 
 /***********************************************************
     Category Page
-************************************************************/
+ ************************************************************/
 
 export const CategoryPage = async (props: { category: string }) => {
 	const subcollections = await supabase.from("subcollections").select("*").eq("category_slug", props.category)
 
-	const { data: subcategories } = await supabase
+	const {data: subcategories} = await supabase
 		.from('subcategories')
 		.select("*").in("subcollection_id", subcollections.data!.map((x: any) => x.id));
 
@@ -199,17 +205,23 @@ export const CategoryPage = async (props: { category: string }) => {
 
 	return (
 		<DefaultLayout>
-			{organizedData.map((subcollection: any) => (
-				<div>
-					<h2>{subcollection.name}</h2>
-					{subcollection.subcategories.map((subcategory: any) => (
-						<a preload href={`/products/${props.category}/${subcategory.slug}`}>
-							<p>{subcategory.name}</p>
-							<img loading={"lazy"} width={50} height={50} src={subcategory.image_url} alt={subcategory.name} />
-						</a>
-					))}
-				</div>
-			))}
+			<div class="category-page">
+				{organizedData.map((subcollection: any) => (
+					<div class="category-wrapper">
+						<h2>{subcollection.name}</h2>
+						<ul>
+							{subcollection.subcategories.map((subcategory: any) => (
+								<li>
+									<a preload href={`/products/${props.category}/${subcategory.slug}`}>
+										<p>{subcategory.name}</p>
+										<img loading={"lazy"} width={50} height={50} src={subcategory.image_url} alt={subcategory.name} />
+									</a>
+								</li>
+							))}
+						</ul>
+					</div>
+				))}
+			</div>
 		</DefaultLayout>
 	)
 }
@@ -222,14 +234,14 @@ export const SubcategoryPage = async (props: { subcategory: string }) => {
 	const products = await supabase.from("products").select("*").eq("subcategory_slug", props.subcategory)
 	return (
 		<DefaultLayout>
-			{products.data?.map((product: any) => (
-				<a preload href={`/product/${product.slug}`}>
-					<h3>{product.name}</h3>
-					<p>{product.description}</p>
-					<p>{product.price}</p>
-					<img width={50} height={50} src={product.image_url} alt={product.name} />
-				</a>
-			))}
+			<div>
+				{products.data?.map((product: any) => (
+					<a preload href={`/product/${product.slug}`}>
+						<h3>{product.name}</h3>
+						<img width={50} height={50} src={product.image_url} alt={product.name} />
+					</a>
+				))}
+			</div>
 		</DefaultLayout>
 	)
 }
