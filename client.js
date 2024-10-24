@@ -31,6 +31,10 @@ class Morpher
 
 	intersectObserver;
 
+	loader;
+
+	loaderTimeouts = [];
+
 	getFromCache(url)
 	{
 		if(Morpher.s_PageCache.has(url)) return Morpher.s_PageCache.get(url);
@@ -61,17 +65,60 @@ class Morpher
 			element.addEventListener("click", async (e) => {
 				e.preventDefault();
 				history.pushState({ url }, "", url);
+
+				this.loaderTimeouts.forEach(clearTimeout);
+				this.loaderTimeouts.length = 0;
+
+				this.loader.style.transition = "all 0.001s";
+				this.loader.style.opacity = "1";
+				this.loader.style.transform = "scaleX(0)";
+
+				this.loaderTimeouts.push(
+					setTimeout(() =>{
+						this.loader.style.transition = "all 1s";
+						this.loader.style.transform = "scaleX(.4)";
+						this.loader.style.opacity = "1";
+					}, 50),
+					setTimeout(() => {
+						this.loader.style.transition = "all .5s";
+						this.loader.style.transform = "scaleX(.6)";
+					}, 750),
+					setTimeout(() => {
+						this.loader.style.transform = "scaleX(.7)";
+					}, 1500),
+					setTimeout(() => {
+						this.loader.style.transform = "scaleX(.8)";
+					}, 3000),
+					setTimeout(() => {
+						this.loader.style.transform = "scaleX(.85)";
+					}, 4500),
+					setTimeout(() => {
+						this.loader.style.transform = "scaleX(.9)";
+					}, 6000),
+				)
+
 				const response = await this.getFromCache(url);
+
 				try {
 					if(location.href === url)
 					{
 						this.morph(response);
+						this.loaderTimeouts.forEach(clearTimeout);
+						this.loaderTimeouts.length = 0;
 						setTimeout(() => requestAnimationFrame(() => window.scroll(0, 0)));
 					}
 				}
 				catch (e) {}
+				this.loaderTimeouts.push(
+					setTimeout(() => requestAnimationFrame(() => {
+						this.loader.style.transition = "all 1s";
+						this.loader.style.transform = "scaleX(1)";
+						this.loader.style.opacity = "0";
+					}), 100),
+				)
 			})
-			element.addEventListener("mousedown", () => {
+
+			element.addEventListener("pointerenter", () => {
 				this.getFromCache(url).then((r) => {
 					this.preloadImages(r);
 				})
@@ -145,6 +192,8 @@ class Morpher
 			const response = await this.getFromCache(url);
 			this.morph(response);
 		});
+
+		this.loader = document.body.shadowRoot.getElementById("loader");
 	}
 
 	morph(result)

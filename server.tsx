@@ -69,6 +69,7 @@ const Shell = (p: PropsWithChildren<{ meta: any }>) => (
 		</head>
 		<body>
 			<template id="lol" shadowrootmode="open">
+				<div id="loader" className="loader"/>
 				<link rel="stylesheet" href="/styles.css"/>
 				<Header/>
 				<main>
