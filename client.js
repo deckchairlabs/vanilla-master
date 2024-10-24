@@ -1,3 +1,5 @@
+
+
 if (!window.requestIdleCallback) {
 	window.requestIdleCallback = function (callback, options) {
 		var options = options || {};
@@ -63,7 +65,11 @@ class Morpher
 		if(!element.hasSPAEventAdded)
 		{
 			element.addEventListener("click", async (e) => {
+
 				e.preventDefault();
+
+				const url = element.href;
+
 				history.pushState({ url }, "", url);
 
 				this.loaderTimeouts.forEach(clearTimeout);

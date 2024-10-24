@@ -47,6 +47,28 @@ h1, h2, h3, h4, h5, h6 {
     isolation: isolate;
 }
 
+:root {
+    --primary-color: rgb(61, 61, 122);
+}
+
+a {
+    color: black;
+    transition: all .1s;
+    &:hover {
+        text-decoration: underline;
+    }
+    &:visited {
+        color: var(--primary-color);
+    }
+}
+
+a.hoverable {
+    padding: 2px;
+    &:hover {
+        background-color: rgba(from var(--primary-color) r g b / .1 );
+    }
+}
+
 .header-root {
     padding: 1rem 1rem 0 1rem;
     width: 100%;
@@ -59,7 +81,7 @@ h1, h2, h3, h4, h5, h6 {
 
     & > .logo {
         font-size: 3rem;
-        color: forestgreen;
+        color: var(--primary-color);
         margin: 0;
         font-family: sans-serif;
         font-weight: bolder;
@@ -77,11 +99,11 @@ h1, h2, h3, h4, h5, h6 {
         font-size: 1.25rem;
         padding: .125rem;
         margin-bottom: .25rem;
-        outline-color: forestgreen;
+        outline-color: var(--primary-color);
 
         &:active, &:focus {
-            border-color: forestgreen;
-            outline-color: forestgreen;
+            border-color: var(--primary-color);
+            outline-color: var(--primary-color);
             box-shadow: none;
             -webkit-box-shadow: none;
         }
@@ -91,7 +113,7 @@ h1, h2, h3, h4, h5, h6 {
         display: flex;
         align-items: center;
         gap: 1rem;
-        color: forestgreen;
+        color: var(--primary-color);
         font-size: 1.25rem;
         font-weight: bolder;
         line-height: 1.125;
@@ -138,7 +160,7 @@ footer {
         gap: 1rem;
         font-size: .75rem;
         justify-content: center;
-        color: forestgreen;
+        color: var(--primary-color);
         list-style-type: none;
         font-family: sans-serif;
 
@@ -161,7 +183,7 @@ footer {
         font-size: .8rem;
 
         & > a {
-            color: forestgreen;
+            color: var(--primary-color);
             text-decoration: none;
 
             &:hover {
@@ -233,7 +255,7 @@ main {
     width: 100%;
     height: 5px;
     transform-origin: left;
-    background-color: forestgreen;
+    background-color: var(--primary-color);
     transform: scaleX(0);
     transition: all .75s;
 }
@@ -261,7 +283,7 @@ main {
     }
 }
 
-.category-page {
+.category-page, .subcategory-page {
     display: flex;
     flex-direction: column;
     gap: 3rem;
@@ -281,9 +303,109 @@ main {
         display: flex;
         gap: 1rem;
         flex-wrap: wrap;
+        justify-content: start;
     }
 
     & li {
+        width: 250px;
+        background-color: rgba(0, 0, 0, .05);
+        border: 1px solid rgba(0, 0, 0, .1);
         list-style: none;
+
+        & > a {
+            padding: .5rem;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 1rem;
+        }
+
+    }
+}
+
+/*
+			<section class="product-page">
+				<h1 class="title">{product.data.name}</h1>
+				<div class="image-description">
+					<img src={product.data.image_url} loading="eager" />
+					<p>{product.data.description}</p>
+				</div>
+				<p class="price">{product.data.price}</p>
+				<form class="cart-form" method="post" action={"/cart/add/" + product.data.slug}>
+					<button class="add-to-cart">Add to cart</button>
+				</form>
+				<div class="related"
+
+ */
+
+.product-page {
+
+    & .title {
+        color: var(--primary-color);
+        font-size: 3rem;
+        font-family: sans-serif;
+        margin-bottom: 1rem;
+    }
+
+    & .image-description {
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+        font-size: 1.25rem;
+    }
+
+    & .price {
+        font-size: 1.5rem;
+        font-family: sans-serif;
+        margin-bottom: 1rem;
+    }
+
+    & .cart-form {
+
+    }
+
+    & .add-to-cart {
+        padding: .5rem;
+        font-size: 1.25rem;
+        font-family: sans-serif;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        /*cursor: pointer;*/
+        transition: all .1s;
+        pointer-events: none;
+
+        &:hover {
+            background-color: rgba(from var(--primary-color) r g b / .75 );
+        }
+    }
+
+    & .related {
+        margin-top: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+
+        & > .grid {
+            max-width: 75%;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+
+            & li {
+                width: 250px;
+                background-color: rgba(0, 0, 0, .05);
+                border: 1px solid rgba(0, 0, 0, .1);
+                list-style: none;
+
+                & > a {
+                    padding: .5rem;
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    gap: 1rem;
+                }
+            }
+        }
     }
 }

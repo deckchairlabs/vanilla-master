@@ -93,7 +93,7 @@ export const DefaultLayout = async (props: PropsWithChildren) => {
 			<aside class="sidebar-nav">
 				<h2>Choose a Collection</h2>
 				{c.data?.map((collection: any) => (
-					<a preload href={`/collections/${collection.slug}`}>{collection.name}</a>))}
+					<a class={'hoverable'} preload href={`/collections/${collection.slug}`}>{collection.name}</a>))}
 			</aside>
 			<div class="content">{props.children}</div>
 		</div>
@@ -173,14 +173,17 @@ export const CollectionPage = async (props: { collection: string }) => {
 	return (
 		<DefaultLayout>
 			<div class="collection-page">
-				<h2>{data.name}</h2>
-				<div className="collection-wrapper">
-					{data.categories.map((category: any) => (
-						<a preload href={`/products/${category.slug}`}>
-							<img loading={"eager"} width={100} height={100} src={category.image_url} alt={category.name}/>
-							<p>{category.name}</p>
-						</a>
-					))}
+				<div>
+					<h2>{data.name}</h2>
+					<div className="collection-wrapper">
+						{data.categories.map((category: any) => (
+							<a preload href={`/products/${category.slug}`}>
+								<img loading={"eager"} width={100} height={100} src={category.image_url}
+									 alt={category.name}/>
+								<p>{category.name}</p>
+							</a>
+						))}
+					</div>
 				</div>
 			</div>
 		</DefaultLayout>
@@ -214,9 +217,10 @@ export const CategoryPage = async (props: { category: string }) => {
 						<ul>
 							{subcollection.subcategories.map((subcategory: any) => (
 								<li>
-									<a preload href={`/products/${props.category}/${subcategory.slug}`}>
+									<a preload class="hoverable" href={`/products/${props.category}/${subcategory.slug}`}>
+										<img loading={"lazy"} width={100} height={100} src={subcategory.image_url}
+											 alt={subcategory.name}/>
 										<p>{subcategory.name}</p>
-										<img loading={"lazy"} width={50} height={50} src={subcategory.image_url} alt={subcategory.name} />
 									</a>
 								</li>
 							))}
@@ -230,19 +234,26 @@ export const CategoryPage = async (props: { category: string }) => {
 
 /***********************************************************
 	Subcategory Page
-************************************************************/
+ ************************************************************/
 
 export const SubcategoryPage = async (props: { subcategory: string }) => {
 	const products = await supabase.from("products").select("*").eq("subcategory_slug", props.subcategory)
 	return (
 		<DefaultLayout>
-			<div>
-				{products.data?.map((product: any) => (
-					<a preload href={`/product/${product.slug}`}>
-						<h3>{product.name}</h3>
-						<img loading={"eager"} width={50} height={50} src={product.image_url} alt={product.name} />
-					</a>
-				))}
+			<div className='subcategory-page'>
+				<div className="category-wrapper">
+					<ul>
+						{products.data?.map((subcategory: any) => (
+							<li>
+								<a preload className="hoverable" href={`/product/${subcategory.slug}`}>
+									<img loading={"lazy"} width={100} height={100} src={subcategory.image_url}
+										 alt={subcategory.name}/>
+									<p>{subcategory.name}</p>
+								</a>
+							</li>
+						))}
+					</ul>
+				</div>
 			</div>
 		</DefaultLayout>
 	)
@@ -250,13 +261,37 @@ export const SubcategoryPage = async (props: { subcategory: string }) => {
 
 /***********************************************************
 	Product Page
-************************************************************/
+ ************************************************************/
 
 export const ProductPage = async (props: { product: string }) => {
-	const product = await supabase.from("products").select("*").eq("slug", props.product)
+	const product = (await supabase.from("products").select("*").eq("slug", props.product).single()) as { data: Product }
+	const relatedProducts = await supabase.from("products").select("*").neq("slug", props.product).limit(6)
 	return (
 		<DefaultLayout>
-			<pre>{JSON.stringify(product.data, null, 2)}</pre>
+			<section class="product-page">
+				<h1 class="title">{product.data.name}</h1>
+				<div class="image-description">
+					<img width={350} height={350} src={product.data.image_url} loading="eager" />
+					<p>{product.data.description}</p>
+				</div>
+				<p class="price">${product.data.price}</p>
+				<form class="cart-form" method="post" action={"/cart/add/" + product.data.slug}>
+					<button class="add-to-cart">Add to cart</button>
+				</form>
+				<div class="related">
+					<h3>Explore more Products</h3>
+					<ul class='grid'>
+						{relatedProducts.data?.map((product: any) => (
+							<li>
+								<a preload className="hoverable" href={`/product/${product.slug}`}>
+									<img loading={"eager"} width={100} height={100} src={product.image_url} alt={product.name}/>
+									<p>{product.name}</p>
+								</a>
+							</li>
+						))}
+					</ul>
+				</div>
+			</section>
 		</DefaultLayout>
 	)
 }
