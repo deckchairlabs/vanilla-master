@@ -92,7 +92,7 @@ a.hoverable {
         cursor: pointer;
     }
 
-    & > .search {
+    & .search {
         flex-grow: 1;
         max-width: 20rem;
         border: 1px solid black;

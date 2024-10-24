@@ -104,7 +104,9 @@ export const Header = () => {
 	return (
 		<header class="header-root">
 			<a preload={"eager"} href="/" class="logo">VanillaMaster</a>
-			<input class="search" placeholder="Search..."></input>
+			<product-search>
+				<input class="search" placeholder="Search..."></input>
+			</product-search>
 			<div class="menu-wrapper">
 				<a class="order-link">ORDER</a>
 				<a class="order-history-link">ORDER HISTORY</a>
@@ -335,6 +337,36 @@ app.get("/product/:product", (c) =>
 	const meta = {}
 	return c.html(<Shell meta={meta}><ProductPage product={c.req.param("product")} /></Shell>)
 });
+
+app.get("/search/:query", async (c) =>
+{
+	await new Promise((resolve) => setTimeout(resolve, 500));
+	try {
+		// Clean and prepare the search query
+		const cleanQuery = c.req.param('query').trim().replace(/\s+/g, ' & ');
+
+		// If query is empty, return early
+		if (!cleanQuery) {
+			return c.json({ data: [], error: null });
+		}
+
+		// Perform the search with multiple approaches and combine results
+		const { data, error } = await supabase
+			.from('products')
+			.select('name, slug, image_url')
+			.textSearch('search_vector', cleanQuery)
+			.limit(10);
+
+		if (error) {
+			console.error('Search error:', error);
+			return c.json({ data: null, error });
+		}
+		return c.json({ data, error: null });
+	} catch (error) {
+		console.error('Unexpected error:', error);
+		return c.json({ data: null, error });
+	}
+})
 
 app.use("/client.js", serveStatic({ path: "./client.js" }));
 app.use("/worker.js", serveStatic({ path: "./worker.js" }));
