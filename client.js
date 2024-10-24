@@ -17,38 +17,6 @@ if (!window.requestIdleCallback) {
 	};
 }
 
-class ControllerEvent extends CustomEvent
-{
-	static { globalThis.dispatch = (e, v) => { event.target.dispatchEvent(new ControllerEvent(e, v)); } }
-
-	constructor(key, value)
-	{
-		super("cevent", { detail: { key, value }, bubbles: true, cancelable: true, composed: false });
-	}
-}
-
-class Controller extends HTMLElement
-{
-	connectedCallback(){ this.addEventListener("cevent", this.handleEvent ) }
-	disconnectedCallback() { this.removeEventListener("cevent", this.handleEvent ) }
-	handleEvent = (e) =>
-	{
-		const key = e.detail.key.toLowerCase();
-		const value = e.detail.value;
-		let found = false;
-		for(const k in this)
-		{
-			if(k.toLowerCase() === key && typeof this[k] === "function")
-			{
-				this[k](value);
-				found = true;
-				break;
-			}
-		}
-		if(found) e.stopImmediatePropagation();
-	}
-}
-
 class Morpher
 {
 	static s_PageCache = new Map();
@@ -66,7 +34,8 @@ class Morpher
 	getFromCache(url)
 	{
 		if(Morpher.s_PageCache.has(url)) return Morpher.s_PageCache.get(url);
-		Morpher.s_PageCache.set(url, fetch(url, { headers: { "x-morphframe": 'true' }}).then(response => response.text()));
+		Morpher.s_PageCache.set(url, fetch(url, { headers: { "x-morphframe": 'true' }})
+			.then(response => response.text()));
 		return Morpher.s_PageCache.get(url);
 	}
 
@@ -79,26 +48,20 @@ class Morpher
 		const url = element.href;
 
 		if(strategy === "eager" && !Morpher.s_PageCache.has(url))
-		{
 			this.getFromCache(url)
-		}
 		else if (strategy === "hover" && Morpher.s_PageCache.has(url))
-		{
 			element.addEventListener("mouseenter", () => {
 				this.getFromCache(url)
 			})
-		}
 		else if (!Morpher.s_PageCache.has(url))
-		{
 			this.intersectObserver.observe(element);
-		}
 
 		if(!element.hasSPAEventAdded)
 		{
 			element.addEventListener("click", async (e) => {
 				e.preventDefault();
-				const response = await this.getFromCache(url);
 				history.pushState({ url }, "", url);
+				const response = await this.getFromCache(url);
 				try {
 					if(location.href === url)
 					{
@@ -106,9 +69,7 @@ class Morpher
 						setTimeout(() => requestAnimationFrame(() => window.scroll(0, 0)));
 					}
 				}
-				catch (e) {
-
-				}
+				catch (e) {}
 			})
 			element.addEventListener("mousedown", () => {
 				this.getFromCache(url).then((r) => {
@@ -117,7 +78,6 @@ class Morpher
 			})
 			element.hasSPAEventAdded = true;
 		}
-
 	}
 
 	preloadImages(content)
@@ -169,7 +129,6 @@ class Morpher
 
 		this.mutationObserver.observe(document.body, { childList: true, subtree: true });
 
-
 		for(const link of document.getElementsByTagName("a"))
 		{
 			this.registerLink(link);
@@ -197,165 +156,7 @@ class Morpher
 		{
 			Idiomorph.morph(document.querySelector("[slot=main]"), main);
 		}
-
 	}
 }
 
-new Morpher().init();
-
-class MorphFrame extends HTMLElement
-{
-	static s_PageCache = new Map();
-
-	mutationObserver;
-
-	intersectObserver;
-
-	getFromCache(url)
-	{
-		if(MorphFrame.s_PageCache.has(url)) return MorphFrame.s_PageCache.get(url);
-		MorphFrame.s_PageCache.set(url, fetch(url, { headers: { "x-morphframe": 'true' }}).then(response => response.text()));
-		return MorphFrame.s_PageCache.get(url);
-	}
-
-	registerLink(element)
-	{
-		const strategy = element.getAttribute("preload");
-
-		if(!strategy) return;
-
-		const url = element.href;
-
-		if(strategy === "eager" && !MorphFrame.s_PageCache.has(url))
-		{
-			this.getFromCache(url)
-		}
-		else if (strategy === "hover" && MorphFrame.s_PageCache.has(url))
-		{
-			element.addEventListener("mouseenter", () => {
-				this.getFromCache(url)
-			})
-		}
-		else if (!MorphFrame.s_PageCache.has(url))
-		{
-			this.intersectObserver.observe(element);
-		}
-
-		if(!element.hasSPAEventAdded)
-		{
-			element.addEventListener("click", async (e) => {
-				e.preventDefault();
-				const response = await this.getFromCache(url);
-				history.pushState({ url }, "", url);
-				try {
-					if(location.href === url)
-					{
-						this.morph(response);
-						setTimeout(() => requestAnimationFrame(() => window.scroll(0, 0)));
-					}
-				}
-				catch (e) {
-
-				}
-			})
-			element.addEventListener("mousedown", () => {
-				this.getFromCache(url).then((r) => {
-					this.preloadImages(r);
-				})
-			})
-			element.hasSPAEventAdded = true;
-		}
-
-	}
-
-	preloadImages(content)
-	{
-		const template = document.createElement("template");
-		template.innerHTML = content;
-		const images = template.content.querySelectorAll("img");
-		for(const img of images)
-		{
-			new Image().src = img.src;
-		}
-	}
-
-	init()
-	{
-		if(!this.intersectObserver)
-		{
-			this.intersectObserver = new IntersectionObserver((entries) => {
-				for(const entry of entries)
-				{
-					if(entry.isIntersecting)
-					{
-						const url = entry.target.href;
-						this.getFromCache(url);
-					}
-				}
-			})
-		}
-
-		if(!this.mutationObserver)
-		{
-			this.mutationObserver = new MutationObserver((mutations) => {
-				for(const mut of mutations)
-				{
-					for(const n of mut.addedNodes)
-					{
-						const add = (node) => {
-							if(node.tagName === "A") this.registerLink(node);
-							if(node.children) for(const child of node.children) add(child);
-						}
-						add(n);
-					}
-				}
-			})
-		}
-
-		this.mutationObserver.observe(this, { childList: true, subtree: true });
-
-		const links = document.getElementsByTagName("a")
-		for(const link of links)
-		{
-			this.registerLink(link);
-		}
-
-		window.addEventListener("popstate", async (event) => {
-			event.preventDefault()
-			const url = event.target.location.pathname;
-			const response = await this.getFromCache(url);
-			this.morph(response);
-		});
-	}
-
-	template = document.createElement("template");
-
-	morph(result)
-	{
-		this.template.shadowRootMode = "open";
-		this.template.innerHTML = result;
-		const newContent = this.template?.content?.getElementById(this.getAttribute("id"))?.innerHTML;
-		if(!newContent) {
-			const body = this.template.content.querySelector("body");
-			if(body) {
-				console.log("MorphFrame: No content found with the specified id. Replacing the entire body.");
-				document.body.innerHTML = body.innerHTML;
-			}
-			else {
-				console.log("MorphFrame: No content found in the response.");
-				window.location.reload();
-			}
-		}
-		else
-		{
-			this.innerHTML = newContent;
-		}
-	}
-
-	connectedCallback()
-	{
-		this.init();
-	}
-}
-
-if(!customElements.get("morph-frame")) customElements.define("morph-frame", MorphFrame);
+new Morpher().init()
