@@ -1,7 +1,7 @@
 import Footer from "@app/components/Footer.tsx";
 import Header from "@app/components/Header.tsx";
 import { useAsset } from "@app/middleware/assets.ts";
-import { Style } from "@app/styles.ts";
+import { css, Style } from "@app/styles.ts";
 import type { PropsWithChildren } from "hono/jsx";
 
 export type LayoutProps = {
@@ -31,9 +31,9 @@ export default function Layout(
             <head>
                 <Metadata {...metadata} />
                 <Preloaded />
-                <Style />
+                <Style>{css`@view-transition { navigation: auto;}`}</Style>
                 <link rel="stylesheet" href={useAsset("styles.css")} />
-                <script src={useAsset("client.js")} />
+                <script src={useAsset("client.js")} type="module" />
             </head>
             <body>
                 <div id="loader" className="loader" />

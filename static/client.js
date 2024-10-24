@@ -102,10 +102,9 @@ class SearchElement extends HTMLElement {
 
       this.results = results;
       this.dropdown.innerHTML = this.results.map((r) =>
-        `<a preload class="search-result hoverable" href="/product/${r.slug}">${r.name}</a>`
+        `<a class="search-result hoverable" href="/product/${r.slug}">${r.name}</a>`
       ).join("");
       for (const link of this.dropdown.getElementsByTagName("a")) {
-        morpher.registerLink(link);
         link.addEventListener("click", (e) => {
           this.dropdown.style.display = "none";
         });
@@ -121,13 +120,11 @@ class SearchElement extends HTMLElement {
 
     this.input = this.querySelector("input");
 
-    console.log(this.querySelector("input"));
-
     this.debouncedOnInput = debounce(this.onInput);
 
     this.input.addEventListener("input", (e) => this.debouncedOnInput(e));
 
-    document.body.shadowRoot.addEventListener("click", (e) => {
+    document.body.addEventListener("click", (e) => {
       if (!this.contains(e.target)) this.dropdown.style.display = "none";
     });
 
